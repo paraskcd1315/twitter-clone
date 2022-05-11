@@ -27,7 +27,7 @@ router.post('/', async (req, res, next) => {
 		let user = await User.findOne({
 			$or: [{ username: username }, { email: email }]
 		}).catch((err) => {
-			console.log(error);
+			console.log(err);
 			payload.errorMessage = 'Something went wrong.';
 			res.status(200).render('register', payload);
 		});
