@@ -1,12 +1,20 @@
+:root {
+	--buttonHoverBg: #d4edff;
+	--blue: #1fa2f1;
+	--lightGrey: #e6ecf0;
+	--spacing: 15px;
+}
+
 body {
-	background-color: #0099ff;
+	background-color: var(--blue);
 	color: #333;
 }
 
 .wrapper {
 	display: flex;
 	justify-content: center;
-	margin-top: 20px;
+	align-items: center;
+	height: 100vh;
 }
 
 .loginContainer {
@@ -39,12 +47,12 @@ input[type='password'] {
 }
 
 input[type='submit'] {
-	background-color: #0099ff;
+	background-color: var(--blue);
 	color: #fff;
 	border: none;
-	border-radius: 2px;
+	border-radius: 40px;
+	padding: 7px var(--spacing);
 	margin-bottom: 10px;
-	padding: 5px;
 }
 
 a {

@@ -3,6 +3,13 @@
 	--blue: #1fa2f1;
 	--lightGrey: #e6ecf0;
 	--spacing: 15px;
+	--blueLight: #9bd1f9;
+	--greyText: #657786;
+	--greyButtonText: #00000057;
+}
+
+* {
+	outline: none !important;
 }
 
 body {
@@ -51,12 +58,20 @@ nav a:hover {
 	border-radius: 50%;
 }
 
+button {
+	background-color: transparent;
+	border: none;
+	color: var(--greyButtonText);
+}
+
 .mainSectionContainer {
 	padding: 0;
 	border-left: 1px solid var(--lightGrey);
 	border-right: 1px solid var(--lightGrey);
 	display: flex;
 	flex-direction: column;
+	box-shadow: inset 10px 0px 20px -12px var(--lightGrey),
+		inset -10px 0px 20px -12px var(--lightGrey);
 }
 
 .titleContainer {
@@ -70,4 +85,115 @@ nav a:hover {
 
 .titleContainer h1 {
 	flex: 1;
+}
+
+.postFormContainer {
+	display: flex;
+	padding: var(--spacing);
+	border-bottom: 1px solid var(--lightGrey);
+	box-shadow: 0 10px 20px -8px var(--lightGrey);
+	flex-shrink: 0;
+}
+
+.userImageContainer {
+	width: 50px;
+	height: 50px;
+	box-shadow: 0 5px 5px var(--lightGrey);
+	border-radius: 50%;
+}
+
+.userImageContainer img {
+	width: 100%;
+	border-radius: 50%;
+	background-color: #fff;
+}
+
+.textareaContainer {
+	flex: 1;
+	padding-left: var(--spacing);
+}
+
+.textareaContainer textarea {
+	width: 100%;
+	border: none;
+	resize: none;
+}
+
+#submitPostButton {
+	background-color: var(--blue);
+	color: #fff;
+	border: none;
+	border-radius: 40px;
+	padding: 7px var(--spacing);
+}
+
+#submitPostButton:disabled {
+	background-color: var(--blueLight);
+}
+
+.post {
+	display: flex;
+	flex-direction: column;
+	padding: var(--spacing);
+	cursor: pointer;
+	border-bottom: 1px solid var(--lightGrey);
+	flex-shrink: 0;
+	transition: 250ms ease;
+}
+
+.post:hover {
+	background-color: #f1f4f8;
+}
+
+.mainContentContainer {
+	flex: 1;
+	display: flex;
+}
+
+.postContentContainer {
+	padding-left: var(--spacing);
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+.username,
+.date {
+	color: var(--greyText);
+}
+
+.displayName {
+	font-weight: bold;
+}
+
+.postFooter {
+	display: flex;
+	align-items: center;
+	padding: 10px 0 0;
+}
+
+.postFooter .postButtonContainer {
+	flex: 1;
+	display: flex;
+}
+
+.postButtonContainer button {
+	width: 45px;
+	height: 45px;
+	transition: 250ms ease;
+}
+
+.postButtonContainer button:hover {
+	background-color: #d4edff;
+	color: var(--blue);
+	border-radius: 50%;
+}
+
+.header a:hover {
+	text-decoration: underline;
+}
+
+.header a,
+.header span {
+	padding-right: 5px;
 }
