@@ -1,8 +1,12 @@
-$('#postTextarea').keyup((e) => {
+$('#postTextarea, #replyTextArea').keyup((e) => {
 	const textbox = $(e.target);
 	const value = textbox.val().trim();
 
-	const submitButton = $('#submitPostButton');
+	const isModal = textbox.parents('.modal').length === 1;
+
+	const submitButton = isModal
+		? $('#submitReplyButton')
+		: $('#submitPostButton');
 
 	if (submitButton && submitButton.length === 0)
 		return console.log('No submit button found');
@@ -34,16 +38,41 @@ $('#submitPostButton').click((e) => {
 $(document).on('click', '.likeButton', (e) => {
 	const button = $(e.target);
 	const postId = getPostIdFromElement(button);
-	
-    if(postId === undefined) console.error("Could not fetch post id");
 
-    $.ajax({
-        url:`/api/posts/${postId}/like`,
-        type: "PUT",
-        success: (postData) => {
-            console.log(postData);
-        }
-    })
+	if (postId === undefined) console.error('Could not fetch post id');
+
+	$.ajax({
+		url: `/api/posts/${postId}/like`,
+		type: 'PUT',
+		success: (postData) => {
+			button.find('span').text(postData.likes.length || '');
+			if (postData.likes.includes(userLoggedIn._id)) {
+				button.addClass('active');
+			} else {
+				button.removeClass('active');
+			}
+		}
+	});
+});
+
+$(document).on('click', '.retweetButton', (e) => {
+	const button = $(e.target);
+	const postId = getPostIdFromElement(button);
+
+	if (postId === undefined) console.error('Could not fetch post id');
+
+	$.ajax({
+		url: `/api/posts/${postId}/retweet`,
+		type: 'POST',
+		success: (postData) => {
+			button.find('span').text(postData.retweetUsers.length || '');
+			if (postData.retweetUsers.includes(userLoggedIn._id)) {
+				button.addClass('active');
+			} else {
+				button.removeClass('active');
+			}
+		}
+	});
 });
 
 const getPostIdFromElement = (el) => {
@@ -53,39 +82,79 @@ const getPostIdFromElement = (el) => {
 };
 
 const createPostHtml = (postData) => {
-	const postedBy = postData.postedBy;
-	const displayName = postedBy.firstName + ' ' + postedBy.lastName;
-	const timestamp = timeDifference(new Date(), new Date(postData.createdAt));
+	if (postData == null) return console.error('Post object is null');
+
+	const isRetweet = postData.retweetData !== undefined;
+	const retweetedBy = isRetweet ? postData.postedBy.username : null;
+
+	postData = isRetweet ? postData.retweetData : postData;
+
+	let retweetText = '';
+
+	if (isRetweet) {
+		retweetText =
+			retweetedBy === userLoggedIn.username
+				? `
+		<span>
+			<i class="fas fa-retweet"></i>
+			<a href='/profile/${retweetedBy}'>You retweeted it</a>
+		</span>`
+				: `
+		<span>
+			<i class="fas fa-retweet"></i>
+			<a href='/profile/${retweetedBy}'>@${retweetedBy}</a> Retweeted
+		</span>`;
+	}
 
 	return `
     <div class="post" data-id="${postData._id}">
+		<div class="postActionContainer">
+			${retweetText}
+		</div>
         <div class="mainContentContainer">
             <div class="userImageContainer">
-                <img src="${postedBy.profilePic}"/>
+                <img src="${postData.postedBy.profilePic}"/>
             </div>
             <div class="postContentContainer">
                 <div class="header">
-                    <a class="displayName" href="/profile/${postedBy.username}">${displayName}</a>
-                    <span class="username">@${postedBy.username}</span>
-                    <span class="date">${timestamp}</span>
+                    <a class="displayName" href="/profile/${
+											postData.postedBy.username
+										}">${
+		postData.postedBy.firstName + ' ' + postData.postedBy.lastName
+	}</a>
+                    <span class="username">@${postData.postedBy.username}</span>
+                    <span class="date">${timeDifference(
+											new Date(),
+											new Date(postData.createdAt)
+										)}</span>
                 </div>
                 <div class="postBody">
                     <span>${postData.content}</span>
                 </div>
                 <div class="postFooter">
                     <div class="postButtonContainer">
-                        <button>
+                        <button data-bs-toggle="modal" data-bs-target="#replyModal">
                             <i class="far fa-comment"></i>
                         </button>
                     </div>
-                    <div class="postButtonContainer">
-                        <button>
+                    <div class="postButtonContainer green">
+                        <button class="retweetButton${
+													postData.retweetUsers.includes(userLoggedIn._id)
+														? ' active'
+														: ''
+												}">
                             <i class="fas fa-retweet"></i>
+							<span>${postData.retweetUsers.length || ''}</span>
                         </button>
                     </div>
-                    <div class="postButtonContainer">
-                        <button class="likeButton">
+                    <div class="postButtonContainer red">
+                        <button class="likeButton${
+													postData.likes.includes(userLoggedIn._id)
+														? ' active'
+														: ''
+												}">
                             <i class="far fa-heart"></i>
+							<span>${postData.likes.length || ''}</span>
                         </button>
                     </div>
                 </div>

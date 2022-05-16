@@ -6,6 +6,10 @@
 	--blueLight: #9bd1f9;
 	--greyText: #657786;
 	--greyButtonText: #00000057;
+	--red: #e2225e;
+	--redBackground: #e2225e1a;
+	--green: #17bf63;
+	--greenBackground: #17bf631a;
 }
 
 * {
@@ -33,6 +37,7 @@ nav {
 	flex-direction: column;
 	align-items: flex-end;
 	height: 100%;
+	position: fixed;
 }
 
 nav a {
@@ -64,6 +69,11 @@ button {
 	color: var(--greyButtonText);
 }
 
+button i,
+button span {
+	pointer-events: none;
+}
+
 .mainSectionContainer {
 	padding: 0;
 	border-left: 1px solid var(--lightGrey);
@@ -93,6 +103,13 @@ button {
 	border-bottom: 1px solid var(--lightGrey);
 	box-shadow: 0 10px 20px -8px var(--lightGrey);
 	flex-shrink: 0;
+}
+
+.modal .postFormContainer {
+	box-shadow: none;
+	border: none;
+	padding: 0;
+	padding-top: var(--spacing);
 }
 
 .userImageContainer {
@@ -196,4 +213,29 @@ button {
 .header a,
 .header span {
 	padding-right: 5px;
+}
+
+.postButtonContainer.red button.active {
+	color: var(--red);
+}
+
+.postButtonContainer.red button:hover {
+	color: var(--red);
+	background-color: var(--redBackground);
+}
+
+.postButtonContainer.green button.active {
+	color: var(--green);
+}
+
+.postButtonContainer.green button:hover {
+	color: var(--green);
+	background-color: var(--greenBackground);
+}
+
+.postActionContainer {
+	padding-left: 35px;
+	font-size: 13px;
+	color: var(--greyText);
+	margin-bottom: 5px;
 }

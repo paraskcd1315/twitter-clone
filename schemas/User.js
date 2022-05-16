@@ -39,6 +39,12 @@ const UserSchema = new Schema(
 				type: Schema.Types.ObjectId,
 				ref: 'Post'
 			}
+		],
+		retweets: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'Post'
+			}
 		]
 	},
 	{ timestamps: true }
