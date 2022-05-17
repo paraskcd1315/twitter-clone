@@ -25,3 +25,21 @@ mixin createReplyModal(userLoggedIn)
                 .modal-footer
                     button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Cancel
                     button#submitReplyButton.btn.btn-primary(type='button', disabled="") Reply
+
+mixin createDeletePostModal()
+    #deletePostModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='deletePostModalLabel', aria-hidden='true')
+        .modal-dialog(role='document')
+            .modal-content
+                .modal-header
+                    h5#deletePostModalLabel.modal-title Delete this post?
+                    button.close(type='button', data-bs-dismiss='modal', aria-label='Close') 
+                        span(aria-hidden='true') &times;
+                .modal-body
+                    p Are you sure you want to delete this tweet?
+                .modal-footer
+                    button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Cancel
+                    button#deletePostButton.btn.btn-primary(type='button') Delete
+
+mixin createPostModals(userLoggedIn)
+    +createReplyModal(userLoggedIn)
+    +createDeletePostModal()

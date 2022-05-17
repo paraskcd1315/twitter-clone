@@ -1,3 +1,11 @@
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+-------------------   Post and Reply Textareas   -------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
+
 $('#postTextarea, #replyTextArea').keyup((e) => {
 	const textbox = $(e.target);
 	const value = textbox.val().trim();
@@ -18,6 +26,14 @@ $('#postTextarea, #replyTextArea').keyup((e) => {
 		submitButton.prop('disabled', false);
 	}
 });
+
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+------------------   Submit Post/Reply Buttons   -------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
 
 $('#submitPostButton, #submitReplyButton').click((e) => {
 	const button = $(e.target);
@@ -51,6 +67,34 @@ $('#submitPostButton, #submitReplyButton').click((e) => {
 	});
 });
 
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+---------------------    Delete Post Button    ---------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
+
+$('#deletePostButton').click((e) => {
+	const postId = $(e.target).data('id');
+
+	$.ajax({
+		url: `api/posts/${postId}`,
+		type: 'DELETE',
+		success: () => {
+			location.reload();
+		}
+	});
+});
+
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+---------------------------    Modals    ---------------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
+
 $('#replyModal').on('show.bs.modal', (event) => {
 	const button = $(event.relatedTarget);
 	const postId = getPostIdFromElement(button);
@@ -65,6 +109,21 @@ $('#replyModal').on('show.bs.modal', (event) => {
 $('#replyModal').on('hidden.bs.modal', () =>
 	$('#originalPostContainer').html('')
 );
+
+$('#deletePostModal').on('show.bs.modal', (event) => {
+	const button = $(event.relatedTarget);
+	const postId = getPostIdFromElement(button);
+
+	$('#deletePostButton').data('id', postId);
+});
+
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+------------------------    Post Buttons    ------------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
 
 $(document).on('click', '.likeButton', (e) => {
 	const button = $(e.target);
@@ -106,6 +165,14 @@ $(document).on('click', '.retweetButton', (e) => {
 	});
 });
 
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+----------------------------    Post    ----------------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
+
 $(document).on('click', '.post', (e) => {
 	const element = $(e.target);
 	const postId = getPostIdFromElement(element);
@@ -114,6 +181,14 @@ $(document).on('click', '.post', (e) => {
 		window.location.href = `/post/${postId}`;
 	}
 });
+
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+----------------------    Random Functions    ----------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
 
 const getPostIdFromElement = (el) => {
 	const isRoot = el.hasClass('post');
@@ -164,6 +239,16 @@ const createPostHtml = (postData, largeFont = false) => {
 		`;
 	}
 
+	let buttons = '';
+
+	if (postData.postedBy._id === userLoggedIn._id) {
+		buttons = `
+		<button data-id="${postData._id}" data-bs-toggle="modal" data-bs-target="#deletePostModal">
+			<i class="fas fa-times"></i>
+		</button>
+		`;
+	}
+
 	return `
     <div class="post${largeFont ? ' largeFont' : ''}" data-id="${postData._id}">
 		<div class="postActionContainer">
@@ -185,6 +270,7 @@ const createPostHtml = (postData, largeFont = false) => {
 											new Date(),
 											new Date(postData.createdAt)
 										)}</span>
+					${buttons}
                 </div>
 				${replyFlag}
                 <div class="postBody">
