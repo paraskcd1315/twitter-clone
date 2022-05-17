@@ -19,21 +19,52 @@ $('#postTextarea, #replyTextArea').keyup((e) => {
 	}
 });
 
-$('#submitPostButton').click((e) => {
+$('#submitPostButton, #submitReplyButton').click((e) => {
 	const button = $(e.target);
-	const textbox = $('#postTextarea');
 
-	const data = {
+	const isModal = button.parents('.modal').length === 1;
+
+	const textbox = isModal ? $('#replyTextArea') : $('#postTextarea');
+
+	let data = {
 		content: textbox.val().trim()
 	};
 
+	if (isModal) {
+		const postId = button.data().id;
+		if (postId === null) {
+			return console.error('Id is null');
+		}
+
+		data.replyTo = postId;
+	}
+
 	$.post('/api/posts', data, (postData) => {
+		if (postData.replyTo) {
+			return location.reload();
+		}
+
 		textbox.val('');
 		const html = createPostHtml(postData);
 		$('.postsContainer').prepend(html);
 		button.prop('disabled', true);
 	});
 });
+
+$('#replyModal').on('show.bs.modal', (event) => {
+	const button = $(event.relatedTarget);
+	const postId = getPostIdFromElement(button);
+
+	$('#submitReplyButton').data('id', postId);
+
+	$.get('/api/posts/' + postId, (results) => {
+		outputPosts(results.postData, $('#originalPostContainer'));
+	});
+});
+
+$('#replyModal').on('hidden.bs.modal', () =>
+	$('#originalPostContainer').html('')
+);
 
 $(document).on('click', '.likeButton', (e) => {
 	const button = $(e.target);
@@ -75,13 +106,22 @@ $(document).on('click', '.retweetButton', (e) => {
 	});
 });
 
+$(document).on('click', '.post', (e) => {
+	const element = $(e.target);
+	const postId = getPostIdFromElement(element);
+
+	if (postId !== undefined && !element.is('button')) {
+		window.location.href = `/post/${postId}`;
+	}
+});
+
 const getPostIdFromElement = (el) => {
 	const isRoot = el.hasClass('post');
 	const rootElement = isRoot ? el : el.closest('.post');
 	return rootElement.data().id;
 };
 
-const createPostHtml = (postData) => {
+const createPostHtml = (postData, largeFont = false) => {
 	if (postData == null) return console.error('Post object is null');
 
 	const isRetweet = postData.retweetData !== undefined;
@@ -106,8 +146,26 @@ const createPostHtml = (postData) => {
 		</span>`;
 	}
 
+	let replyFlag = '';
+
+	if (postData.replyTo && postData.replyTo._id) {
+		if (!postData.replyTo._id) {
+			return console.error('Reply is not populated');
+		} else if (!postData.replyTo.postedBy._id) {
+			return console.error('Reply user Id is not populated');
+		}
+
+		const replyToUsername = postData.replyTo.postedBy.username;
+
+		replyFlag = `
+			<div class="replyFlag">
+				Replying to <a href='/profile/${replyToUsername}'>@${replyToUsername}</a>
+			</div>
+		`;
+	}
+
 	return `
-    <div class="post" data-id="${postData._id}">
+    <div class="post${largeFont ? ' largeFont' : ''}" data-id="${postData._id}">
 		<div class="postActionContainer">
 			${retweetText}
 		</div>
@@ -128,6 +186,7 @@ const createPostHtml = (postData) => {
 											new Date(postData.createdAt)
 										)}</span>
                 </div>
+				${replyFlag}
                 <div class="postBody">
                     <span>${postData.content}</span>
                 </div>
@@ -186,4 +245,30 @@ const timeDifference = (current, previous) => {
 	else if (elapsed < msPerYear)
 		return Math.round(elapsed / msPerMonth) + ' months ago';
 	else return Math.round(elapsed / msPerYear) + ' years ago';
+};
+
+const outputPosts = (results, container) => {
+	container.html('');
+
+	if (!Array.isArray(results)) {
+		results = [results];
+	}
+
+	results.forEach((result) => container.append(createPostHtml(result)));
+
+	if (results.length === 0) {
+		container.append(`<span class="noResults">Nothing to show</span>`);
+	}
+};
+
+const outputPostsWithReplies = (results, container) => {
+	container.html('');
+
+	if (results.replyTo !== undefined && results.replyTo._id !== undefined) {
+		container.append(createPostHtml(results.replyTo));
+	}
+
+	container.append(createPostHtml(results.postData, true));
+
+	results.replies.forEach((result) => container.append(createPostHtml(result)));
 };

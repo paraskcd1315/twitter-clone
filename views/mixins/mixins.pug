@@ -13,14 +13,15 @@ mixin createReplyModal(userLoggedIn)
             .modal-content
                 .modal-header
                     h5#replyModalLabel.modal-title Reply
-                    button.close(type='button', data-dismiss='modal', aria-label='Close')
-                    span(aria-hidden='true') &times;
+                    button.close(type='button', data-bs-dismiss='modal', aria-label='Close')
+                        span(aria-hidden='true') &times;
                 .modal-body
+                    #originalPostContainer
                     .postFormContainer 
                         .userImageContainer
                             img(src=userLoggedIn.profilePic, alt="User's Profile Picture")
                         .textareaContainer
-                            textarea#replyTextArea(placeholder="What's Happening?")
+                            textarea#replyTextArea(placeholder="Tweet your reply")
                 .modal-footer
-                    button.btn.btn-secondary(type='button', data-dismiss='modal') Close
+                    button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Cancel
                     button#submitReplyButton.btn.btn-primary(type='button', disabled="") Reply

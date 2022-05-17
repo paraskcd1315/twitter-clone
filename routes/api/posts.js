@@ -7,19 +7,27 @@ const Post = require('../../schemas/Post');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-router.get('/', (req, res, next) => {
-	Post.find()
-		.populate('postedBy', '-password')
-		.populate('retweetData')
-		.sort({ createdAt: -1 })
-		.then(async (results) => {
-			results = await User.populate(results, { path: 'retweetData.postedBy' });
-			return res.status(200).send(results);
-		})
-		.catch((err) => {
-			console.log(err);
-			return res.sendStatus(400);
-		});
+router.get('/', async (req, res, next) => {
+	const results = await getPosts({});
+	return res.status(200).send(results);
+});
+
+router.get('/:id', async (req, res, next) => {
+	const postId = req.params.id;
+
+	let postData = await getPosts({ _id: postId });
+	postData = postData[0];
+
+	const results = {
+		postData: postData
+	};
+
+	if (postData.replyTo !== undefined) {
+		results.replyTo = postData.replyTo;
+	}
+
+	results.replies = await getPosts({ replyTo: postId });
+	return res.status(200).send(results);
 });
 
 router.post('/', async (req, res, next) => {
@@ -32,6 +40,10 @@ router.post('/', async (req, res, next) => {
 		content: req.body.content,
 		postedBy: req.session.user
 	};
+
+	if (req.body.replyTo) {
+		postData.replyTo = req.body.replyTo;
+	}
 
 	Post.create(postData)
 		.then(async (newPost) => {
@@ -137,5 +149,19 @@ router.post('/:id/retweet', async (req, res, next) => {
 
 	res.status(200).send(post);
 });
+
+const getPosts = async (filter) => {
+	let results = await Post.find(filter)
+		.populate('postedBy', '-password')
+		.populate('retweetData')
+		.populate('replyTo')
+		.sort({ createdAt: -1 })
+		.catch((err) => {
+			console.log(err);
+		});
+
+	results = await User.populate(results, { path: 'replyTo.postedBy' });
+	return await User.populate(results, { path: 'retweetData.postedBy' });
+};
 
 module.exports = router;
