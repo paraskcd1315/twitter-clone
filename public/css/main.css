@@ -290,6 +290,10 @@ button span {
 	position: absolute;
 	bottom: -66px;
 	box-shadow: 0px -10px 20px rgba(0, 0, 0, 0.2);
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .profileHeaderContainer .userImageContainer img {
@@ -391,4 +395,45 @@ button span {
 .user .userDetailsContainer {
 	flex: 1;
 	padding: 0 var(--spacing);
+}
+
+.profilePictureButton {
+	position: absolute;
+	font-size: 50px;
+	color: rgba(0, 0, 0, 0.6);
+	opacity: 0;
+	transition: all 250ms ease;
+}
+
+.userImageContainer:hover .profilePictureButton {
+	opacity: 1;
+}
+
+#imagePreview {
+	width: 100%;
+	display: block;
+	max-width: 100%;
+}
+
+#filePhoto {
+	color: transparent;
+}
+
+#filePhoto::-webkit-file-upload-button {
+	visibility: hidden;
+}
+
+#filePhoto::before {
+	content: 'Browse a Photo';
+	display: inline-block;
+	background-color: var(--blue);
+	padding: var(--spacing);
+	outline: none;
+	cursor: pointer;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	user-select: none;
+	color: #fff;
+	border-radius: 60px;
+	margin-bottom: var(--spacing);
 }

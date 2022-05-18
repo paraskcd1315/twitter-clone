@@ -1,3 +1,5 @@
+var cropper;
+
 /*
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -84,6 +86,57 @@ $('#deletePostButton').click((e) => {
 		success: () => {
 			location.reload();
 		}
+	});
+});
+
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+---------------------    Upload Image Photo    ---------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
+
+$('#filePhoto').change(function () {
+	if (this.files && this.files[0]) {
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const image = document.getElementById('imagePreview');
+			image.src = e.target.result;
+
+			if (cropper !== undefined) {
+				cropper.destroy();
+			}
+
+			cropper = new Cropper(image, {
+				aspectRadio: 1 / 1,
+				background: false
+			});
+		};
+		reader.readAsDataURL(this.files[0]);
+	}
+});
+
+$('#imageUploadButton').click(() => {
+	const canvas = cropper.getCroppedCanvas();
+
+	if (canvas == null) {
+		alert('Could not upload image, make sure it is an Image file');
+		return;
+	}
+
+	canvas.toBlob((blob) => {
+		const formData = new FormData();
+		formData.append('croppedImage', blob);
+
+		$.ajax({
+			url: '/api/users/profilePicture',
+			type: 'POST',
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: () => location.reload()
+		});
 	});
 });
 
