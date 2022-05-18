@@ -185,6 +185,49 @@ $(document).on('click', '.post', (e) => {
 /*
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+------------------------   Follow Button   -------------------------
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
+
+$(document).on('click', '.followButton', (e) => {
+	const button = $(e.target);
+	const userId = button.data().user;
+
+	$.ajax({
+		url: `/api/users/${userId}/follow`,
+		type: 'PUT',
+		success: (data, status, xhr) => {
+			if (xhr.status == 404) {
+				alert(
+					"Something went wrong, either we've switched universes, or perhaps the User does not exist!"
+				);
+				return;
+			}
+
+			let difference = 1;
+
+			if (data.following && data.following.includes(userId)) {
+				button.addClass('following');
+				button.text('following');
+			} else {
+				button.removeClass('following');
+				button.text('follow');
+				difference = -1;
+			}
+
+			const followersLabel = $('#followersValue');
+			if (followersLabel.length != 0) {
+				const followersText = followersLabel.text();
+				followersLabel.text(parseInt(followersText) + difference);
+			}
+		}
+	});
+});
+
+/*
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ----------------------    Random Functions    ----------------------
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||

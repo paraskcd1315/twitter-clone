@@ -7,18 +7,43 @@ const Post = require('../../schemas/Post');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
+//Get all Posts
+
 router.get('/', async (req, res, next) => {
 	let searchObj = req.query;
 
+	//Filter replies
 	if (searchObj.isReply !== undefined) {
 		const isReply = searchObj.isReply === 'true';
 		searchObj.replyTo = { $exists: isReply };
 		delete searchObj.isReply;
 	}
 
+	//Filter posts only from following users
+	if (searchObj.followingOnly !== undefined) {
+		const followingOnly = searchObj.followingOnly === 'true';
+
+		if (followingOnly) {
+			let objectIds = [];
+
+			if (!req.session.user.following) {
+				req.session.user.following = [];
+			}
+
+			req.session.user.following.forEach((user) => objectIds.push(user));
+			objectIds.push(req.session.user._id);
+
+			searchObj.postedBy = { $in: objectIds };
+		}
+
+		delete searchObj.followingOnly;
+	}
+
 	const results = await getPosts(searchObj);
 	return res.status(200).send(results);
 });
+
+//Get a single Post along with its replies
 
 router.get('/:id', async (req, res, next) => {
 	const postId = req.params.id;
@@ -37,6 +62,8 @@ router.get('/:id', async (req, res, next) => {
 	results.replies = await getPosts({ replyTo: postId });
 	return res.status(200).send(results);
 });
+
+//Submit a Post
 
 router.post('/', async (req, res, next) => {
 	if (!req.body.content) {
@@ -68,6 +95,8 @@ router.post('/', async (req, res, next) => {
 		});
 });
 
+//Like a Post
+
 router.put('/:id/like', async (req, res, next) => {
 	const postId = req.params.id;
 	const userId = req.session.user._id;
@@ -86,7 +115,7 @@ router.put('/:id/like', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		res.sendStatus(400);
+		return res.sendStatus(400);
 	});
 
 	//Insert post like
@@ -98,11 +127,13 @@ router.put('/:id/like', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		res.sendStatus(400);
+		return res.sendStatus(400);
 	});
 
 	res.status(200).send(post);
 });
+
+//Retweet a Post
 
 router.post('/:id/retweet', async (req, res, next) => {
 	const postId = req.params.id;
@@ -114,7 +145,7 @@ router.post('/:id/retweet', async (req, res, next) => {
 		retweetData: postId
 	}).catch((err) => {
 		console.error(err);
-		res.sendStatus(400);
+		return res.sendStatus(400);
 	});
 
 	const option = deletedPost != null ? '$pull' : '$addToSet';
@@ -127,7 +158,7 @@ router.post('/:id/retweet', async (req, res, next) => {
 			retweetData: postId
 		}).catch((err) => {
 			console.error(err);
-			res.sendStatus(400);
+			return res.sendStatus(400);
 		});
 	}
 
@@ -140,7 +171,7 @@ router.post('/:id/retweet', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		res.sendStatus(400);
+		return res.sendStatus(400);
 	});
 
 	//Insert post retweet
@@ -152,21 +183,25 @@ router.post('/:id/retweet', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		res.sendStatus(400);
+		return res.sendStatus(400);
 	});
 
 	res.status(200).send(post);
 });
+
+//Delete a Post
 
 router.delete('/:id', async (req, res, next) => {
 	const postId = req.params.id;
 
 	await Post.findByIdAndDelete(postId).catch((err) => {
 		console.log(err);
-		res.sendStatus(400);
+		return res.sendStatus(400);
 	});
 	return res.sendStatus(202);
 });
+
+//Common function for getting posts
 
 const getPosts = async (filter) => {
 	let results = await Post.find(filter)
