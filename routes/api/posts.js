@@ -19,6 +19,12 @@ router.get('/', async (req, res, next) => {
 		delete searchObj.isReply;
 	}
 
+	//Filter according to search
+	if (searchObj.search !== undefined) {
+		searchObj.content = { $regex: searchObj.search, $options: 'i' };
+		delete searchObj.search;
+	}
+
 	//Filter posts only from following users
 	if (searchObj.followingOnly !== undefined) {
 		const followingOnly = searchObj.followingOnly === 'true';

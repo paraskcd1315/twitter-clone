@@ -102,6 +102,19 @@ $('#pinPostButton').click((e) => {
 	});
 });
 
+$('#unpinPostButton').click((e) => {
+	const postId = $(e.target).data('id');
+
+	$.ajax({
+		url: `/api/posts/${postId}`,
+		type: 'PUT',
+		data: { pinned: false },
+		success: () => {
+			location.reload();
+		}
+	});
+});
+
 /*
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -231,6 +244,13 @@ $('#confirmPinModal').on('show.bs.modal', (event) => {
 	const postId = getPostIdFromElement(button);
 
 	$('#pinPostButton').data('id', postId);
+});
+
+$('#unpinModal').on('show.bs.modal', (event) => {
+	const button = $(event.relatedTarget);
+	const postId = getPostIdFromElement(button);
+
+	$('#unpinPostButton').data('id', postId);
 });
 
 /*
@@ -413,10 +433,16 @@ const createPostHtml = (postData, largeFont = false, isProfile = false) => {
 		}
 
 		buttons = `
-		<button class='pinButton ${pinnedClass}' data-id="${postData._id}" data-bs-toggle="modal" data-bs-target="#confirmPinModal">
+		<button class='pinButton ${pinnedClass}' data-id="${
+			postData._id
+		}" data-bs-toggle="modal" data-bs-target="${
+			postData.pinned ? '#unpinModal' : '#confirmPinModal'
+		}">
 			<i class="fas fa-thumbtack"></i>
 		</button>
-		<button data-id="${postData._id}" data-bs-toggle="modal" data-bs-target="#deletePostModal">
+		<button data-id="${
+			postData._id
+		}" data-bs-toggle="modal" data-bs-target="#deletePostModal">
 			<i class="fas fa-times"></i>
 		</button>
 		`;
@@ -531,4 +557,51 @@ const outputPostsWithReplies = (results, container) => {
 	container.append(createPostHtml(results.postData, true));
 
 	results.replies.forEach((result) => container.append(createPostHtml(result)));
+};
+
+const outputUsers = (results, container) => {
+	container.html('');
+
+	let html = '';
+	results.forEach((result) => {
+		html = createUserHtml(result, true);
+		container.append(html);
+	});
+
+	if (results.length === 0) {
+		container.append("<span class='noResults'>Wow! So empty.</span>");
+	}
+};
+
+const createUserHtml = (userData, showFollowButton) => {
+	const isFollowing =
+		userLoggedIn.following && userLoggedIn.following.includes(userData._id);
+	const text = isFollowing ? 'following' : 'follow';
+	const buttonClass = isFollowing ? 'followButton following' : 'followButton';
+
+	let followButton = '';
+	if (showFollowButton && userLoggedIn._id !== userData._id) {
+		followButton = `
+        <div class='followButtonContainer'>
+            <button class='${buttonClass}' data-user='${userData._id}'>
+                ${text}
+            </button>
+        </div>
+        `;
+	}
+
+	return `
+    <div class='user'>
+        <div class='userImageContainer'>
+            <img src='${userData.profilePic}' />
+        </div>
+        <div class='userDetailsContainer'>
+            <div class='header'>
+                <a href='/profile/${userData.username}'>${userData.firstName} ${userData.lastName}</a>
+                <span class='username'>@${userData.username}</span>
+            </div>
+        </div>
+        ${followButton}
+    </div>
+    `;
 };

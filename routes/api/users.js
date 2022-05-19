@@ -11,6 +11,27 @@ const Post = require('../../schemas/Post');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
+router.get('/', async (req, res, next) => {
+	let searchObj = req.query;
+
+	if (req.query.search !== undefined) {
+		searchObj = {
+			$or: [
+				{ firstName: { $regex: req.query.search, $options: 'i' } },
+				{ lastName: { $regex: req.query.search, $options: 'i' } },
+				{ username: { $regex: req.query.search, $options: 'i' } }
+			]
+		};
+	}
+
+	User.find(searchObj)
+		.then((results) => res.status(200).send(results))
+		.catch((err) => {
+			console.error(err);
+			return res.sendStatus(400);
+		});
+});
+
 //Follow and Unfollow user API
 
 router.put('/:userId/follow', async (req, res, next) => {

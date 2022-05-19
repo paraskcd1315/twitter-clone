@@ -40,10 +40,11 @@ input[type='email'],
 input[type='password'] {
 	margin-bottom: 20px;
 	padding: 5px 20px;
-	border: 1px solid #dedede;
-	background-color: #f2f2f2;
-	color: #333;
-	border-radius: 2px;
+	border-radius: 150px;
+	background-color: var(--lightGrey);
+	border: none;
+	color: var(--greyText);
+	box-shadow: 0 10px 20px 0px var(--lightGrey);
 }
 
 input[type='submit'] {
