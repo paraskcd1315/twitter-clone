@@ -81,8 +81,21 @@ $('#deletePostButton').click((e) => {
 	const postId = $(e.target).data('id');
 
 	$.ajax({
-		url: `api/posts/${postId}`,
+		url: `/api/posts/${postId}`,
 		type: 'DELETE',
+		success: () => {
+			location.reload();
+		}
+	});
+});
+
+$('#pinPostButton').click((e) => {
+	const postId = $(e.target).data('id');
+
+	$.ajax({
+		url: `/api/posts/${postId}`,
+		type: 'PUT',
+		data: { pinned: true },
 		success: () => {
 			location.reload();
 		}
@@ -213,6 +226,13 @@ $('#deletePostModal').on('show.bs.modal', (event) => {
 	$('#deletePostButton').data('id', postId);
 });
 
+$('#confirmPinModal').on('show.bs.modal', (event) => {
+	const button = $(event.relatedTarget);
+	const postId = getPostIdFromElement(button);
+
+	$('#pinPostButton').data('id', postId);
+});
+
 /*
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -335,7 +355,7 @@ const getPostIdFromElement = (el) => {
 	return rootElement.data().id;
 };
 
-const createPostHtml = (postData, largeFont = false) => {
+const createPostHtml = (postData, largeFont = false, isProfile = false) => {
 	if (postData == null) return console.error('Post object is null');
 
 	const isRetweet = postData.retweetData !== undefined;
@@ -379,9 +399,23 @@ const createPostHtml = (postData, largeFont = false) => {
 	}
 
 	let buttons = '';
+	let pinnedPostText = '';
+
+	if (postData.pinned && isProfile) {
+		pinnedPostText = `<i class="fas fa-thumbtack"></i> <span>Pinned Post</span>`;
+	}
 
 	if (postData.postedBy._id === userLoggedIn._id) {
+		let pinnedClass = '';
+		if (postData.pinned) {
+			pinnedClass = 'active';
+			pinnedPostText = `<i class="fas fa-thumbtack"></i> <span>Pinned Post</span>`;
+		}
+
 		buttons = `
+		<button class='pinButton ${pinnedClass}' data-id="${postData._id}" data-bs-toggle="modal" data-bs-target="#confirmPinModal">
+			<i class="fas fa-thumbtack"></i>
+		</button>
 		<button data-id="${postData._id}" data-bs-toggle="modal" data-bs-target="#deletePostModal">
 			<i class="fas fa-times"></i>
 		</button>
@@ -392,6 +426,7 @@ const createPostHtml = (postData, largeFont = false) => {
     <div class="post${largeFont ? ' largeFont' : ''}" data-id="${postData._id}">
 		<div class="postActionContainer">
 			${retweetText}
+			${pinnedPostText}
 		</div>
         <div class="mainContentContainer">
             <div class="userImageContainer">

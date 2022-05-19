@@ -463,3 +463,12 @@ button span {
 	border-radius: 60px;
 	margin-bottom: var(--spacing);
 }
+
+.pinButton.active {
+	color: var(--blue);
+}
+
+.pinnedPostContainer {
+	border-bottom: 2px solid var(--lightGrey);
+	box-shadow: 0 10px 20px -5px var(--lightGrey);
+}

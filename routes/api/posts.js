@@ -201,6 +201,28 @@ router.delete('/:id', async (req, res, next) => {
 	return res.sendStatus(202);
 });
 
+//Pin a post
+
+router.put('/:id', async (req, res, next) => {
+	const postId = req.params.id;
+
+	if (req.body.pinned !== undefined) {
+		await Post.updateMany(
+			{ postedBy: req.session.user },
+			{ pinned: false }
+		).catch((err) => {
+			console.log(err);
+			return res.sendStatus(400);
+		});
+	}
+
+	await Post.findByIdAndUpdate(postId, req.body).catch((err) => {
+		console.log(err);
+		return res.sendStatus(400);
+	});
+	return res.sendStatus(204);
+});
+
 //Common function for getting posts
 
 const getPosts = async (filter) => {
