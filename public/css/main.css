@@ -511,7 +511,7 @@ button span {
 }
 
 .chatTitlebar label {
-	margin-right: 10px;
+	margin: 0 10px 0 0;
 }
 
 #userSearchTextbox {
@@ -543,7 +543,39 @@ button span {
 	padding: var(--spacing);
 }
 
-.hashtags {
+.hashtags,
+.embedLink {
 	color: var(--blue);
 	font-weight: bold;
+}
+
+.embedLink {
+	padding: var(--spacing);
+}
+
+.embeds {
+	display: flex;
+	flex-direction: column;
+	border-radius: 10px;
+	overflow: hidden;
+	z-index: 1;
+	margin: var(--spacing);
+	height: 500px;
+	box-shadow: 0 10px 20px 0px var(--lightGrey);
+}
+
+.embeds .youtubeEmbed {
+	flex: 1;
+	height: 100%;
+	border-radius: 10px;
+}
+
+.selectedUser {
+	font-weight: 300;
+	background-color: #cde5fe;
+	color: #0084ff;
+	padding: 5px;
+	border-radius: 3px;
+	margin: 5px 5px 0 0;
+	display: inline-block;
 }

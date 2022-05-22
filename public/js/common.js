@@ -1,5 +1,6 @@
 var cropper;
 var timer;
+var selectedUsers = [];
 
 /*
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -228,7 +229,17 @@ $('#userSearchTextbox').keydown((e) => {
 	const textbox = $(e.target);
 	let value = textbox.val();
 
-	if (value == '' && e.keycode == 8) {
+	if (value == '' && (e.which == 8 || e.keyCode == 8)) {
+		//Todo: Remove user from selection
+		selectedUsers.pop();
+		updateSelectedUsersHtml();
+		$('.resultsContainer').html('');
+
+		if (selectedUsers.length === 0) {
+			$('#createChatButton').prop('disabled', true);
+		}
+
+		return;
 	}
 
 	timer = setTimeout(() => {
@@ -236,9 +247,20 @@ $('#userSearchTextbox').keydown((e) => {
 		if (value == '') {
 			$('.resultsContainer').html('');
 		} else {
-			search(value, searchType);
+			searchUsers(value);
 		}
 	}, 1000);
+});
+
+$('#createChatButton').click(() => {
+	const data = JSON.stringify(selectedUsers);
+
+	$.post('/api/chats', { users: data }, (chat) => {
+		if (!chat || !chat._id) {
+			return console.error('Invalid response from server');
+		}
+		window.location.href = `/messages/${chat._id}`;
+	});
 });
 
 /*
@@ -412,6 +434,22 @@ const createPostHtml = (postData, largeFont = false, isProfile = false) => {
 
 	let newContent = postData.content;
 
+	const websiteExp = /(https?:\/\/[^ ]*)/;
+	const youtubeUrl =
+		postData.content?.match(websiteExp) &&
+		postData.content?.match(websiteExp)[1];
+
+	const youtubeEmbed = youtubeEmbedder(youtubeUrl)
+		? youtubeEmbedder(youtubeUrl)
+		: '';
+
+	if (youtubeEmbed) {
+		newContent = newContent.replace(
+			youtubeUrl,
+			`<br /><a class="embedLink" href="${youtubeUrl}">Visit Youtube</a>`
+		);
+	}
+
 	if (
 		Array.isArray(findHashtags(postData.content)) &&
 		findHashtags(postData.content).length > 0
@@ -554,6 +592,7 @@ const createPostHtml = (postData, largeFont = false, isProfile = false) => {
 				${replyFlag}
                 <div class="postBody">
                     <span>${postData.content}</span>
+					${youtubeEmbed ? `<div class="embeds">${youtubeEmbed}</div>` : ''}
                 </div>
                 <div class="postFooter">
                     <div class="postButtonContainer">
@@ -652,6 +691,36 @@ const outputUsers = (results, container) => {
 	}
 };
 
+const outputSelectableUsers = (results, container) => {
+	container.html('');
+
+	let html = '';
+	results.forEach((result) => {
+		if (
+			result._id == userLoggedIn._id ||
+			selectedUsers.some((u) => u._id == result._id)
+		) {
+			return;
+		}
+		html = createUserHtml(result, false);
+		let element = $(html);
+		element.click(() => userSelected(result));
+		container.append(element);
+	});
+
+	if (results.length === 0) {
+		container.append("<span class='noResults'>Wow! So empty.</span>");
+	}
+};
+
+const userSelected = (user) => {
+	selectedUsers.push(user);
+	updateSelectedUsersHtml();
+	$('#userSearchTextbox').val('').focus();
+	$('.resultsContainer').html('');
+	$('#createChatButton').prop('disabled', false);
+};
+
 const createUserHtml = (userData, showFollowButton) => {
 	const isFollowing =
 		userLoggedIn.following && userLoggedIn.following.includes(userData._id);
@@ -712,4 +781,35 @@ const findMentions = (searchText, withAt) => {
 
 const findDuplicateHashtags = (arr) => {
 	return arr.filter((item, index) => arr.indexOf(item) != index);
+};
+
+const youtubeEmbedder = (url) => {
+	const regExp =
+		/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+	const match = url && url.match(regExp);
+
+	if (match && match[2].length == 11) {
+		return `<iframe class='youtubeEmbed' src="//www.youtube.com/embed/${match[2]}" frameborder="0" allowfullscreen></iframe>`;
+	} else {
+		return false;
+	}
+};
+
+const searchUsers = (searchTerm) => {
+	$.get('/api/users', { search: searchTerm }, (results) => {
+		outputSelectableUsers(results, $('.resultsContainer'));
+	});
+};
+
+const updateSelectedUsersHtml = () => {
+	var elements = [];
+
+	selectedUsers.forEach((user) => {
+		const name = user.firstName + ' ' + user.lastName;
+		const userElement = $(`<span class="selectedUser">${name}</span>`);
+		elements.push(userElement);
+	});
+
+	$('.selectedUser').remove();
+	$('#selectedUsers').prepend(elements);
 };
