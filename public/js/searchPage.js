@@ -1,5 +1,3 @@
-var timer;
-
 $('#searchBox').keydown((e) => {
 	clearTimeout(timer);
 
@@ -20,11 +18,15 @@ $('#searchBox').keydown((e) => {
 const search = (searchTerm, searchType) => {
 	const url = searchType === 'users' ? '/api/users' : '/api/posts';
 
-	$.get(url, { search: searchTerm }, (results) => {
-		if (searchType == 'users') {
-			outputUsers(results, $('.resultsContainer'));
-		} else {
-			outputPosts(results, $('.resultsContainer'));
+	$.get(
+		url,
+		{ search: searchTerm, followingOnly: searchType == 'users' ? false : true },
+		(results) => {
+			if (searchType == 'users') {
+				outputUsers(results, $('.resultsContainer'));
+			} else {
+				outputPosts(results, $('.resultsContainer'));
+			}
 		}
-	});
+	);
 };

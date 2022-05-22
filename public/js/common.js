@@ -1,4 +1,5 @@
 var cropper;
+var timer;
 
 /*
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -19,7 +20,7 @@ $('#postTextarea, #replyTextArea').keyup((e) => {
 		: $('#submitPostButton');
 
 	if (submitButton && submitButton.length === 0)
-		return console.log('No submit button found');
+		return console.error('No submit button found');
 
 	if (value === '') {
 		submitButton.prop('disabled', true);
@@ -55,6 +56,18 @@ $('#submitPostButton, #submitReplyButton').click((e) => {
 		}
 
 		data.replyTo = postId;
+	}
+
+	const hashtags = findHashtags(data.content);
+
+	const mentions = findMentions(data.content);
+
+	if (hashtags) {
+		data.hashtags = hashtags;
+	}
+
+	if (mentions) {
+		data.mentions = mentions;
 	}
 
 	$.post('/api/posts', data, (postData) => {
@@ -207,6 +220,25 @@ $('#coverPhotoButton').click(() => {
 			success: () => location.reload()
 		});
 	});
+});
+
+$('#userSearchTextbox').keydown((e) => {
+	clearTimeout(timer);
+
+	const textbox = $(e.target);
+	let value = textbox.val();
+
+	if (value == '' && e.keycode == 8) {
+	}
+
+	timer = setTimeout(() => {
+		value = textbox.val().trim();
+		if (value == '') {
+			$('.resultsContainer').html('');
+		} else {
+			search(value, searchType);
+		}
+	}, 1000);
 });
 
 /*
@@ -377,6 +409,53 @@ const getPostIdFromElement = (el) => {
 
 const createPostHtml = (postData, largeFont = false, isProfile = false) => {
 	if (postData == null) return console.error('Post object is null');
+
+	let newContent = postData.content;
+
+	if (
+		Array.isArray(findHashtags(postData.content)) &&
+		findHashtags(postData.content).length > 0
+	) {
+		const hashtags =
+			findDuplicateHashtags(findHashtags(postData.content)).length > 0
+				? findDuplicateHashtags(findHashtags(postData.content))
+				: findHashtags(postData.content);
+		hashtags.map((hashtag) => {
+			newContent = newContent.replace(
+				hashtag,
+				`<a class="hashtags" href='/hashtags/${hashtag.replace(
+					'#',
+					''
+				)}'>${hashtag}</a>`
+			);
+		});
+	}
+
+	if (
+		Array.isArray(findMentions(postData.content)) &&
+		findMentions(postData.content).length > 0
+	) {
+		const mentions = findMentions(postData.content, true);
+		mentions.map((mention) => {
+			if (
+				postData.mentions.some(
+					(mention2) => mention2.username === mention.replace('@', '')
+				)
+			) {
+				newContent = newContent.replace(
+					mention,
+					`<a class="hashtags" href='/profile/${mention.replace(
+						'@',
+						''
+					)}'>${mention}</a>`
+				);
+			}
+		});
+	}
+
+	if (newContent && newContent !== '') {
+		postData.content = newContent;
+	}
 
 	const isRetweet = postData.retweetData !== undefined;
 	const retweetedBy = isRetweet ? postData.postedBy.username : null;
@@ -604,4 +683,33 @@ const createUserHtml = (userData, showFollowButton) => {
         ${followButton}
     </div>
     `;
+};
+
+const findHashtags = (searchText) => {
+	const regexp = /\B\#\w\w+\b/g;
+	let result = searchText && searchText.match(regexp);
+	if (result) {
+		return result.map(function (s) {
+			return s.trim();
+		});
+	} else {
+		return false;
+	}
+};
+
+const findMentions = (searchText, withAt) => {
+	const regexp = /\B\@\w\w+\b/g;
+	let result = searchText && searchText.match(regexp);
+	if (result) {
+		return result.map(function (s) {
+			let resultString = withAt ? s : s.replace('@', '');
+			return resultString.trim();
+		});
+	} else {
+		return false;
+	}
+};
+
+const findDuplicateHashtags = (arr) => {
+	return arr.filter((item, index) => arr.indexOf(item) != index);
 };

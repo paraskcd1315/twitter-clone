@@ -4,6 +4,7 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const User = require('../../schemas/User');
 const Post = require('../../schemas/Post');
+const Hashtag = require('../../schemas/Hashtag');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -79,11 +80,53 @@ router.post('/', async (req, res, next) => {
 
 	let postData = {
 		content: req.body.content,
-		postedBy: req.session.user
+		postedBy: req.session.user,
+		hashtags: [],
+		mentions: []
 	};
 
 	if (req.body.replyTo) {
 		postData.replyTo = req.body.replyTo;
+	}
+
+	const hashtags =
+		req.body['hashtags[]'] && Array.isArray(req.body['hashtags[]'])
+			? req.body['hashtags[]']
+			: [req.body['hashtags[]']];
+
+	const mentions =
+		req.body['mentions[]'] && Array.isArray(req.body['mentions[]'])
+			? req.body['mentions[]']
+			: [req.body['mentions[]']];
+
+	if (req.body['hashtags[]']) {
+		await Promise.all(
+			hashtags.map(async (hashtag) => {
+				const hashtagExists = await Hashtag.find({ content: hashtag });
+
+				if (hashtagExists.length !== 0) {
+					postData.hashtags.push(hashtagExists[0]._id);
+				} else {
+					const newHashtag = await Hashtag.create({
+						content: hashtag
+					});
+
+					postData.hashtags.push(newHashtag._id);
+				}
+			})
+		);
+	}
+
+	if (req.body['mentions[]']) {
+		await Promise.all(
+			mentions.map(async (mention) => {
+				const userExists = await User.find({ username: mention });
+
+				if (userExists) {
+					postData.mentions.push(userExists[0]._id);
+				}
+			})
+		);
 	}
 
 	Post.create(postData)
@@ -92,6 +135,27 @@ router.post('/', async (req, res, next) => {
 				path: 'postedBy',
 				select: '-password'
 			});
+
+			newPost = await User.populate(newPost, {
+				path: 'mentions'
+			});
+
+			newPost = await Hashtag.populate(newPost, {
+				path: 'hashtags'
+			});
+
+			if (hashtags) {
+				await Promise.all(
+					hashtags.map(async (hashtag) => {
+						const updatedHashtag = await Hashtag.findOneAndUpdate(
+							{ content: hashtag },
+							{
+								$addToSet: { posts: newPost._id }
+							}
+						);
+					})
+				);
+			}
 
 			return res.status(201).send(newPost);
 		})
@@ -236,6 +300,8 @@ const getPosts = async (filter) => {
 		.populate('postedBy', '-password')
 		.populate('retweetData')
 		.populate('replyTo')
+		.populate('hashtags')
+		.populate('mentions')
 		.sort({ createdAt: -1 })
 		.catch((err) => {
 			console.log(err);

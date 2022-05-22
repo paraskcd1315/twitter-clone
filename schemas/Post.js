@@ -20,6 +20,18 @@ const PostSchema = new Schema(
 				ref: 'User'
 			}
 		],
+		mentions: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'User'
+			}
+		],
+		hashtags: [
+			{
+				type: Schema.Types.ObjectId,
+				ref: 'Hashtag'
+			}
+		],
 		retweetUsers: [
 			{
 				type: Schema.Types.ObjectId,
