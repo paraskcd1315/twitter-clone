@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const User = require('../../schemas/User');
 const Post = require('../../schemas/Post');
 const Hashtag = require('../../schemas/Hashtag');
+const res = require('express/lib/response');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 

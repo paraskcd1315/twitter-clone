@@ -57,8 +57,11 @@ block content
             +createTab("Posts", `/profile/${profileUser.username}`, selectedTab != "replies")
             +createTab("Replies", `/profile/${profileUser.username}/replies`, selectedTab == "replies")
 
-        .pinnedPostContainer
-        .postsContainer 
+        .loadingSpinnerContainer 
+            img(src="/images/loadingSpinner.gif", alt="loading spinner")
+
+        .pinnedPostContainer(style="display: none")
+        .postsContainer(style="display: none")
 
         +createPostModals(userLoggedIn)
         +createImageUploadModal()

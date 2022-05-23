@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const User = require('../../schemas/User');
 const Post = require('../../schemas/Post');
 const Chat = require('../../schemas/Chat');
+const Message = require('../../schemas/Message');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -13,11 +14,18 @@ app.use(bodyParser.urlencoded({ extended: false }));
 router.get('/', async (req, res, next) => {
 	Chat.find({ users: { $elemMatch: { $eq: req.session.user._id } } })
 		.populate('users')
+		.populate('latestMessage')
 		.sort({ updatedAt: -1 })
-		.then((results) => res.status(200).send(results))
+		.then(async (results) => {
+			results = await User.populate(results, {
+				path: 'latestMessage.sender',
+				select: '-password'
+			});
+			return res.status(200).send(results);
+		})
 		.catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 });
 
@@ -31,7 +39,17 @@ router.get('/:chatId', async (req, res, next) => {
 		.then((results) => res.status(200).send(results))
 		.catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
+		});
+});
+
+router.get('/:chatId/messages', async (req, res, next) => {
+	Message.find({ chat: req.params.chatId })
+		.populate('sender')
+		.then((results) => res.status(200).send(results))
+		.catch((err) => {
+			console.error(err);
+			return res.sendStatus(500);
 		});
 });
 
@@ -59,7 +77,7 @@ router.post('/', async (req, res, next) => {
 		.then((results) => res.status(200).send(results))
 		.catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 });
 
@@ -68,7 +86,7 @@ router.put('/:chatId', async (req, res, next) => {
 		.then((results) => res.sendStatus(204))
 		.catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 });
 

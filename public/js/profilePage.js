@@ -15,6 +15,9 @@ const loadPosts = () => {
 		{ postedBy: profileUserId, isReply: false },
 		(results) => {
 			outputPosts(results, $('.postsContainer'));
+			$('.loadingSpinnerContainer').remove();
+			$('.postsContainer').attr('style', '');
+			$('.pinnedPostContainer').attr('style', '');
 		}
 	);
 };

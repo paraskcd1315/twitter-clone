@@ -22,6 +22,8 @@ const loadFollowing = () => {
 		{ postedBy: profileUserId, isReply: true },
 		(results) => {
 			outputUsers(results.following, $('.resultsContainer'));
+			$('.loadingSpinnerContainer').remove();
+			$('.resultsContainer').attr('style', '');
 		}
 	);
 };

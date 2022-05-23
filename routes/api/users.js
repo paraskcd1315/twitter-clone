@@ -28,7 +28,7 @@ router.get('/', async (req, res, next) => {
 		.then((results) => res.status(200).send(results))
 		.catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 });
 
@@ -55,14 +55,14 @@ router.put('/:userId/follow', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 
 	await User.findByIdAndUpdate(userId, {
 		[option]: { followers: req.session.user._id }
 	}).catch((err) => {
 		console.error(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 
 	res.status(200).send(req.session.user);
@@ -73,7 +73,7 @@ router.get('/:userId/following', async (req, res, next) => {
 		.populate('following')
 		.catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 
 	return res.status(200).send(results);
@@ -84,7 +84,7 @@ router.get('/:userId/followers', async (req, res, next) => {
 		.populate('followers')
 		.catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 
 	return res.status(200).send(results);

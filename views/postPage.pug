@@ -4,7 +4,9 @@ block content
     script. 
         var postId = '!{postId}';
         
-    .postsContainer 
+    .loadingSpinnerContainer 
+        img(src="/images/loadingSpinner.gif", alt="loading spinner")
+    .postsContainer(style="display: none")
 
     +createPostModals(userLoggedIn)
         

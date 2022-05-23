@@ -4,7 +4,9 @@ block content
     script. 
         var hashtag = '!{hashtag}';
         
-    .resultsContainer 
+    .loadingSpinnerContainer 
+        img(src="/images/loadingSpinner.gif", alt="loading spinner")
+    .resultsContainer(style="display: none")
 
     +createPostModals(userLoggedIn)
         

@@ -2,7 +2,10 @@ extends layouts/main-layout.pug
 
 block content 
     +createPostForm(userLoggedIn)
-    .postsContainer 
+
+    .loadingSpinnerContainer 
+        img(src="/images/loadingSpinner.gif", alt="loading spinner")
+    .postsContainer(style="display: none")
 
     +createPostModals(userLoggedIn)
         

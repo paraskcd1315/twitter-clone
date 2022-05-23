@@ -161,7 +161,7 @@ router.post('/', async (req, res, next) => {
 		})
 		.catch((e) => {
 			console.log(e);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 });
 
@@ -185,7 +185,7 @@ router.put('/:id/like', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 
 	//Insert post like
@@ -197,7 +197,7 @@ router.put('/:id/like', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 
 	res.status(200).send(post);
@@ -215,7 +215,7 @@ router.post('/:id/retweet', async (req, res, next) => {
 		retweetData: postId
 	}).catch((err) => {
 		console.error(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 
 	const option = deletedPost != null ? '$pull' : '$addToSet';
@@ -228,7 +228,7 @@ router.post('/:id/retweet', async (req, res, next) => {
 			retweetData: postId
 		}).catch((err) => {
 			console.error(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 	}
 
@@ -241,7 +241,7 @@ router.post('/:id/retweet', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 
 	//Insert post retweet
@@ -253,7 +253,7 @@ router.post('/:id/retweet', async (req, res, next) => {
 		{ new: true }
 	).catch((err) => {
 		console.error(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 
 	res.status(200).send(post);
@@ -266,7 +266,7 @@ router.delete('/:id', async (req, res, next) => {
 
 	await Post.findByIdAndDelete(postId).catch((err) => {
 		console.log(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 	return res.sendStatus(202);
 });
@@ -282,13 +282,13 @@ router.put('/:id', async (req, res, next) => {
 			{ pinned: false }
 		).catch((err) => {
 			console.log(err);
-			return res.sendStatus(400);
+			return res.sendStatus(500);
 		});
 	}
 
 	await Post.findByIdAndUpdate(postId, req.body).catch((err) => {
 		console.log(err);
-		return res.sendStatus(400);
+		return res.sendStatus(500);
 	});
 	return res.sendStatus(204);
 });

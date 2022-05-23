@@ -4,6 +4,8 @@ $(document).ready(() => {
 			console.error('Could not get chat list');
 		} else {
 			outputChatList(data, $('.resultsContainer'));
+			$('.loadingSpinnerContainer').remove();
+			$('.resultsContainer').attr('style', '');
 		}
 	});
 });
@@ -22,7 +24,7 @@ const outputChatList = (chatList, container) => {
 const createChatHtml = (chatData) => {
 	var chatName = getChatName(chatData);
 	var image = getChatImageElements(chatData);
-	var latestMessage = 'This is the latest message';
+	var latestMessage = getLatestMessage(chatData.latestMessage);
 
 	return `<a href='/messages/${chatData._id}' class='resultListItem'>
                 ${image}
@@ -31,6 +33,15 @@ const createChatHtml = (chatData) => {
                     <span class='subText ellipsis'>${latestMessage}</span>
                 </div>
             </a>`;
+};
+
+const getLatestMessage = (latestMessage) => {
+	if (latestMessage != null) {
+		const sender = latestMessage.sender;
+		return `${sender.firstName} ${sender.lastName}: ${latestMessage.content}`;
+	}
+
+	return 'New Chat';
 };
 
 const getChatImageElements = (chatData) => {
