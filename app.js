@@ -10,6 +10,9 @@ const session = require('express-session');
 const server = app.listen(port, () =>
 	console.log(`Server listening on Port - ${port}`)
 );
+const io = require('socket.io')(server, {
+	pingTimeout: 60000
+});
 
 app.set('view engine', 'pug');
 app.set('views', 'views');
@@ -65,4 +68,26 @@ app.get('/', middleware.requireLogin, (req, res, next) => {
 		userLoggedInJs: JSON.stringify(req.session.user)
 	};
 	res.status(200).render('home', payload);
+});
+
+io.on('connection', (socket) => {
+	socket.on('setup', (userData) => {
+		socket.join(userData._id);
+		socket.emit('connected');
+	});
+
+	socket.on('Join room', (room) => socket.join(room));
+	socket.on('Typing', (room) => socket.in(room).emit('Typing'));
+	socket.on('Stop Typing', (room) => socket.in(room).emit('Stop Typing'));
+	socket.on('New Message', (newMessage) => {
+		const chat = newMessage.chat;
+
+		if (!chat.users) return console.error('Chat.users not defined');
+
+		chat.users.forEach((user) => {
+			if (user._id == newMessage.sender._id) return;
+
+			socket.in(user._id).emit('Message Received', newMessage);
+		});
+	});
 });
