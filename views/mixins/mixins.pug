@@ -116,3 +116,41 @@ mixin createUnpinPostModal()
                 .modal-footer
                     button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Cancel
                     button#unpinPostButton.btn.btn-primary(type='button') Unpin
+
+mixin createChatImage(chatData, userLoggedIn)
+    if(!chatData)
+        return 
+
+    - var i = 0
+    - var maxImagesToShow = 3
+    - var remainingUsers = chatData.users.length - maxImagesToShow
+    - remainingUsers-- //Remove since we wont show out own image
+        
+    .chatImageContainer 
+        if remainingUsers > 0
+            .userCount 
+                span +#{remainingUsers}
+
+        each user in chatData.users 
+            if chatData.users.length != 1 && user._id == userLoggedIn._id 
+                - continue 
+
+            else if i >= maxImagesToShow 
+                - break
+
+            img(src=user.profilePic, alt="User's Profile Picture", title=user.fileName)
+            - i++
+
+mixin createChatNameModal(chat)
+    #chatNameModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='chatNameLabel', aria-hidden='true')
+        .modal-dialog(role='document')
+            .modal-content
+                .modal-header
+                    h5#chatNameLabel.modal-title Change the chat name
+                    button.close(type='button', data-bs-dismiss='modal', aria-label='Close') 
+                        span(aria-hidden='true') &times;
+                .modal-body
+                    input#chatNameTextbox(type="text", placeholder="Enter a name for this chat", value=chat.chatName)
+                .modal-footer
+                    button.btn.btn-secondary(type='button', data-bs-dismiss='modal') Cancel
+                    button#chatNameButton.btn.btn-primary(type='button') Save
