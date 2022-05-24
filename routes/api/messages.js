@@ -21,7 +21,8 @@ router.post('/', async (req, res, next) => {
 	let newMessage = {
 		sender: req.session.user._id,
 		content: req.body.content,
-		chat: req.body.chatId
+		chat: req.body.chatId,
+		readBy: [req.session.user._id]
 	};
 
 	Message.create(newMessage)

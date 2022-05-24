@@ -83,6 +83,10 @@ io.on('connection', (socket) => {
 	socket.on('Join room', (room) => socket.join(room));
 	socket.on('Typing', (room) => socket.in(room).emit('Typing'));
 	socket.on('Stop Typing', (room) => socket.in(room).emit('Stop Typing'));
+	socket.on('Notification Received', (room) =>
+		socket.in(room).emit('Notification Received')
+	);
+
 	socket.on('New Message', (newMessage) => {
 		const chat = newMessage.chat;
 

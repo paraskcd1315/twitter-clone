@@ -7,14 +7,6 @@ $(document).ready(() => {
 	refreshNotificationsBadge();
 });
 
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
--------------------   Post and Reply Textareas   -------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
-
 $('#postTextarea, #replyTextArea').keyup((e) => {
 	const textbox = $(e.target);
 	const value = textbox.val().trim();
@@ -35,14 +27,6 @@ $('#postTextarea, #replyTextArea').keyup((e) => {
 		submitButton.prop('disabled', false);
 	}
 });
-
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-------------------   Submit Post/Reply Buttons   -------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
 
 $('#submitPostButton, #submitReplyButton').click((e) => {
 	const button = $(e.target);
@@ -78,6 +62,7 @@ $('#submitPostButton, #submitReplyButton').click((e) => {
 
 	$.post('/api/posts', data, (postData) => {
 		if (postData.replyTo) {
+			emitNotification(postData.replyTo.postedBy);
 			return location.reload();
 		}
 
@@ -85,16 +70,13 @@ $('#submitPostButton, #submitReplyButton').click((e) => {
 		const html = createPostHtml(postData);
 		$('.postsContainer').prepend(html);
 		button.prop('disabled', true);
+		if (postData.mentions && postData.mentions.length > 0) {
+			postData.mentions.forEach((mention) => {
+				emitNotification(mention._id);
+			});
+		}
 	});
 });
-
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
----------------------    Delete Post Button    ---------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
 
 $('#deletePostButton').click((e) => {
 	const postId = $(e.target).data('id');
@@ -133,14 +115,6 @@ $('#unpinPostButton').click((e) => {
 		}
 	});
 });
-
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
----------------------    Upload Image Photo    ---------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
 
 $('#filePhoto').change(function () {
 	if (this.files && this.files[0]) {
@@ -268,14 +242,6 @@ $('#createChatButton').click(() => {
 	});
 });
 
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
----------------------------    Modals    ---------------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
-
 $('#replyModal').on('show.bs.modal', (event) => {
 	const button = $(event.relatedTarget);
 	const postId = getPostIdFromElement(button);
@@ -312,14 +278,6 @@ $('#unpinModal').on('show.bs.modal', (event) => {
 	$('#unpinPostButton').data('id', postId);
 });
 
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-------------------------    Post Buttons    ------------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
-
 $(document).on('click', '.likeButton', (e) => {
 	const button = $(e.target);
 	const postId = getPostIdFromElement(button);
@@ -333,6 +291,7 @@ $(document).on('click', '.likeButton', (e) => {
 			button.find('span').text(postData.likes.length || '');
 			if (postData.likes.includes(userLoggedIn._id)) {
 				button.addClass('active');
+				emitNotification(postData.postedBy);
 			} else {
 				button.removeClass('active');
 			}
@@ -353,20 +312,13 @@ $(document).on('click', '.retweetButton', (e) => {
 			button.find('span').text(postData.retweetUsers.length || '');
 			if (postData.retweetUsers.includes(userLoggedIn._id)) {
 				button.addClass('active');
+				emitNotification(postData.postedBy);
 			} else {
 				button.removeClass('active');
 			}
 		}
 	});
 });
-
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-----------------------------    Post    ----------------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
 
 $(document).on('click', '.post', (e) => {
 	const element = $(e.target);
@@ -376,14 +328,6 @@ $(document).on('click', '.post', (e) => {
 		window.location.href = `/post/${postId}`;
 	}
 });
-
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-------------------------   Follow Button   -------------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
 
 $(document).on('click', '.followButton', (e) => {
 	const button = $(e.target);
@@ -405,6 +349,7 @@ $(document).on('click', '.followButton', (e) => {
 			if (data.following && data.following.includes(userId)) {
 				button.addClass('following');
 				button.text('following');
+				emitNotification(userId);
 			} else {
 				button.removeClass('following');
 				button.text('follow');
@@ -431,14 +376,6 @@ $(document).on('click', '.notification.active', (e) => {
 
 	markNotificationsAsOpened(notificationId, callback);
 });
-
-/*
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-----------------------    Random Functions    ----------------------
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-*/
 
 const getPostIdFromElement = (el) => {
 	const isRoot = el.hasClass('post');
@@ -852,8 +789,8 @@ const getOtherChatUsers = (users) => {
 };
 
 const messageReceived = (newMessage) => {
-	if ($('.chatContainer').length == 0) {
-		//Show popup notification
+	if ($(`[data-room="${newMessage.chat._id}"]`).length == 0) {
+		showMessagePopup(newMessage);
 	} else {
 		addChatMessageHtml(newMessage);
 	}
@@ -898,4 +835,178 @@ const refreshNotificationsBadge = () => {
 			$('#notificationBadge').text('').removeClass('active');
 		}
 	});
+};
+
+const showNotificationPopup = (data) => {
+	const html = createNotificationHtml(data);
+
+	const element = $(html);
+
+	element.hide().prependTo('#notificationList').slideDown('fast');
+
+	setTimeout(() => element.fadeOut(400), 5000);
+};
+
+const showMessagePopup = (data) => {
+	if (!data.chat.latestMessage._id) {
+		data.chat.latestMessage = data;
+	}
+
+	const html = createChatHtml(data.chat);
+
+	const element = $(html);
+
+	element.hide().prependTo('#notificationList').slideDown('fast');
+
+	setTimeout(() => element.fadeOut(400), 5000);
+};
+
+const outputNotificationList = (notifications, container) => {
+	notifications.forEach((notification) => {
+		const html = createNotificationHtml(notification);
+
+		container.append(html);
+	});
+
+	if (notifications.length == 0) {
+		container.append("<span class='noResults'>Nothing to show.</span>");
+	}
+};
+
+const createNotificationHtml = (notification) => {
+	const userFrom = notification.userFrom;
+	const text = getNotificationText(notification);
+	const url = getNotificationUrl(notification);
+	const className = notification.opened ? '' : ' active';
+
+	return `
+    <a href="${url}" class="resultListItem notification${className}" data-id='${notification._id}'>
+        <div class="resultsImageContainer">
+            <img src='${userFrom.profilePic}' /> 
+        </div>
+        <div class='resultsDetailsContainer ellipsis'>
+            ${text}
+        </div>
+    </a>
+    `;
+};
+
+const getNotificationText = (notification) => {
+	const userFrom = notification.userFrom;
+	const notificationType = notification.notificationType;
+
+	if (!userFrom.firstName || !userFrom.lastName) {
+		console.error('userFrom not populated');
+	}
+
+	const userFromName = `${userFrom.firstName} ${userFrom.lastName}`;
+
+	let text;
+
+	switch (notificationType) {
+		case 'retweet':
+			text = `${userFromName} retweeted one of your posts`;
+			break;
+
+		case 'postLike':
+			text = `${userFromName} liked one of your posts`;
+			break;
+
+		case 'reply':
+			text = `${userFromName} replied to one of your posts`;
+			break;
+
+		case 'follow':
+			text = `${userFromName} followed you`;
+			break;
+
+		case 'mention':
+			text = `${userFromName} mentioned you in one of their posts`;
+			break;
+
+		default:
+			text = '';
+			break;
+	}
+
+	return `
+    <span class="ellipsis">
+        ${text}
+    </span>`;
+};
+
+const getNotificationUrl = (notification) => {
+	const notificationType = notification.notificationType;
+
+	let url;
+
+	switch (notificationType) {
+		case 'retweet':
+		case 'postLike':
+		case 'reply':
+		case 'mention':
+			url = `/post/${notification.entityId}`;
+			break;
+
+		case 'follow':
+			url = `/profile/${notification.entityId}`;
+			break;
+
+		default:
+			url = '#';
+			break;
+	}
+
+	return url;
+};
+
+const createChatHtml = (chatData) => {
+	var chatName = getChatName(chatData);
+	var image = getChatImageElements(chatData);
+	var latestMessage = getLatestMessage(chatData.latestMessage);
+
+	var activeClass =
+		!chatData.latestMessage ||
+		chatData.latestMessage.readBy.includes(userLoggedIn._id)
+			? ''
+			: ' active';
+
+	return `<a href='/messages/${chatData._id}' class='resultListItem${activeClass}'>
+                ${image}
+                <div class='resultsDetailsContainer ellipsis'>
+                    <span class='heading ellipsis'>${chatName}</span>
+                    <span class='subText ellipsis'>${latestMessage}</span>
+                </div>
+            </a>`;
+};
+
+const getLatestMessage = (latestMessage) => {
+	if (latestMessage != null) {
+		const sender = latestMessage.sender;
+		return `${sender.firstName} ${sender.lastName}: ${latestMessage.content}`;
+	}
+
+	return 'New Chat';
+};
+
+const getChatImageElements = (chatData) => {
+	var otherChatUsers = getOtherChatUsers(chatData.users);
+
+	var groupChatClass = '';
+	var chatImage = getUserChatImageElement(otherChatUsers[0]);
+
+	if (otherChatUsers.length > 1) {
+		groupChatClass = 'groupChatImage';
+		chatImage += getUserChatImageElement(otherChatUsers[1]);
+	}
+
+	return `<div class='resultsImageContainer ${groupChatClass}'>${chatImage}</div>`;
+};
+
+const getUserChatImageElement = (user) => {
+	if (!user || !user.profilePic) {
+		return alert('User passed into function is invalid');
+	}
+
+	return `<img src='${user.profilePic}' alt='User's profile pic'>`;
 };
