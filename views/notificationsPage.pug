@@ -1,0 +1,14 @@
+extends layouts/main-layout.pug
+
+block content 
+
+    .loadingSpinnerContainer 
+        img(src="/images/loadingSpinner.gif", alt="loading spinner")
+    .resultsContainer(style="display: none")
+
+block headerButton
+    button#markNotificationsAsRead
+        i.fas.fa-check-double
+
+block scripts
+    script(src="/js/notificationsPage.js") 

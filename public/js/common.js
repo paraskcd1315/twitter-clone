@@ -2,6 +2,11 @@ var cropper;
 var timer;
 var selectedUsers = [];
 
+$(document).ready(() => {
+	refreshMessagesBadge();
+	refreshNotificationsBadge();
+});
+
 /*
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -413,6 +418,18 @@ $(document).on('click', '.followButton', (e) => {
 			}
 		}
 	});
+});
+
+$(document).on('click', '.notification.active', (e) => {
+	const container = $(e.target);
+	const notificationId = container.data().id;
+	const href = container.attr('href');
+
+	e.preventDefault();
+
+	const callback = () => (window.location = href);
+
+	markNotificationsAsOpened(notificationId, callback);
 });
 
 /*
@@ -840,4 +857,45 @@ const messageReceived = (newMessage) => {
 	} else {
 		addChatMessageHtml(newMessage);
 	}
+
+	refreshMessagesBadge();
+};
+
+const markNotificationsAsOpened = (notificationId = null, callback = null) => {
+	if (callback == null) callback = () => location.reload();
+
+	const url =
+		notificationId != null
+			? `/api/notifications/${notificationId}/markAsOpened`
+			: `/api/notifications/markAsOpened`;
+
+	$.ajax({
+		url: url,
+		type: 'PUT',
+		success: callback
+	});
+};
+
+const refreshMessagesBadge = () => {
+	$.get('/api/chats', { unreadOnly: true }, (data) => {
+		const numResults = data.length;
+
+		if (numResults > 0) {
+			$('#messagesBadge').text(numResults).addClass('active');
+		} else {
+			$('#messagesBadge').text('').removeClass('active');
+		}
+	});
+};
+
+const refreshNotificationsBadge = () => {
+	$.get('/api/notifications', { unreadOnly: true }, (data) => {
+		const numResults = data.length;
+
+		if (numResults > 0) {
+			$('#notificationBadge').text(numResults).addClass('active');
+		} else {
+			$('#notificationBadge').text('').removeClass('active');
+		}
+	});
 };

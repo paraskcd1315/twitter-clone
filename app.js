@@ -37,13 +37,7 @@ const uploadRoute = require('./routes/uploadRoutes');
 const searchRoute = require('./routes/searchRoutes');
 const messagesRoute = require('./routes/messagesRoutes');
 const hashtagRoute = require('./routes/hashtagRoutes');
-
-// API Routes
-const postsApiRoute = require('./routes/api/posts');
-const usersApiRoute = require('./routes/api/users');
-const hashtagsApiRoute = require('./routes/api/hashtags');
-const chatsApiRoute = require('./routes/api/chats');
-const messagesApiRoute = require('./routes/api/messages');
+const notificationRoute = require('./routes/notificationRoutes');
 
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
@@ -54,12 +48,22 @@ app.use('/uploads', middleware.requireLogin, uploadRoute);
 app.use('/search', middleware.requireLogin, searchRoute);
 app.use('/messages', middleware.requireLogin, messagesRoute);
 app.use('/hashtags', middleware.requireLogin, hashtagRoute);
+app.use('/notifications', middleware.requireLogin, notificationRoute);
+
+// API Routes
+const postsApiRoute = require('./routes/api/posts');
+const usersApiRoute = require('./routes/api/users');
+const hashtagsApiRoute = require('./routes/api/hashtags');
+const chatsApiRoute = require('./routes/api/chats');
+const messagesApiRoute = require('./routes/api/messages');
+const notificationsApiRoute = require('./routes/api/notifications');
 
 app.use('/api/posts', postsApiRoute);
 app.use('/api/users', usersApiRoute);
 app.use('/api/hashtags', hashtagsApiRoute);
 app.use('/api/chats', chatsApiRoute);
 app.use('/api/messages', messagesApiRoute);
+app.use('/api/notifications', notificationsApiRoute);
 
 app.get('/', middleware.requireLogin, (req, res, next) => {
 	let payload = {

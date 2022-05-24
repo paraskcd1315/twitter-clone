@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const User = require('../../schemas/User');
 const Post = require('../../schemas/Post');
 const Hashtag = require('../../schemas/Hashtag');
+const Notification = require('../../schemas/Notification');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -136,6 +137,10 @@ router.post('/', async (req, res, next) => {
 				select: '-password'
 			});
 
+			newPost = await Post.populate(newPost, {
+				path: 'replyTo'
+			});
+
 			newPost = await User.populate(newPost, {
 				path: 'mentions'
 			});
@@ -153,6 +158,32 @@ router.post('/', async (req, res, next) => {
 								$addToSet: { posts: newPost._id }
 							}
 						);
+					})
+				);
+			}
+
+			if (req.body.replyTo) {
+				await Notification.insertNotification(
+					newPost.replyTo.postedBy,
+					req.session.user._id,
+					'reply',
+					newPost._id
+				);
+			}
+
+			if (req.body['mentions[]']) {
+				await Promise.all(
+					mentions.map(async (mention) => {
+						const userExists = await User.findOne({ username: mention });
+
+						if (userExists) {
+							await Notification.insertNotification(
+								userExists._id,
+								req.session.user._id,
+								'mention',
+								newPost._id
+							);
+						}
 					})
 				);
 			}
@@ -199,6 +230,15 @@ router.put('/:id/like', async (req, res, next) => {
 		console.error(err);
 		return res.sendStatus(500);
 	});
+
+	if (!isLiked) {
+		await Notification.insertNotification(
+			post.postedBy,
+			userId,
+			'postLike',
+			post._id
+		);
+	}
 
 	res.status(200).send(post);
 });
@@ -255,6 +295,15 @@ router.post('/:id/retweet', async (req, res, next) => {
 		console.error(err);
 		return res.sendStatus(500);
 	});
+
+	if (!deletedPost) {
+		await Notification.insertNotification(
+			post.postedBy,
+			userId,
+			'retweet',
+			post._id
+		);
+	}
 
 	res.status(200).send(post);
 });

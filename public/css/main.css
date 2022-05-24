@@ -54,6 +54,7 @@ nav {
 }
 
 nav a {
+	position: relative;
 	display: flex;
 	padding: 10px;
 	font-size: 20px;
@@ -880,5 +881,35 @@ button span {
 
 .loadingSpinnerContainer img {
 	width: 50%;
-	max-width: 45px;
+	max-width: 30px;
+}
+
+.resultListItem.active {
+	background-color: var(--blueBackground);
+}
+
+.resultListItem.notification * {
+	pointer-events: none;
+}
+
+#notificationBadge,
+#messagesBadge {
+	background-color: var(--red);
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	color: #fff;
+	position: absolute;
+	top: 0;
+	right: 0;
+	font-size: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	visibility: hidden;
+}
+
+#notificationBadge.active,
+#messagesBadge.active {
+	visibility: visible;
 }

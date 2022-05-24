@@ -17,6 +17,17 @@ router.get('/', async (req, res, next) => {
 		.populate('latestMessage')
 		.sort({ updatedAt: -1 })
 		.then(async (results) => {
+			if (
+				req.query.unreadOnly !== undefined &&
+				req.query.unreadOnly == 'true'
+			) {
+				results = results.filter(
+					(r) =>
+						r.latestMessage &&
+						r.latestMessage.readBy &&
+						!r.latestMessage.readBy?.includes(req.session.user._id)
+				);
+			}
 			results = await User.populate(results, {
 				path: 'latestMessage.sender',
 				select: '-password'
