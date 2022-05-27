@@ -4,8 +4,17 @@ mixin createPostForm(userLoggedIn)
             img(src=userLoggedIn.profilePic, alt="User's Profile Picture")
         .textareaContainer
             textarea#postTextarea(placeholder="What's Happening?")
-            .buttonContainer 
-                button#submitPostButton(disabled="") Post 
+            .buttonsContainer 
+                .attachmentsButtonsContainer 
+                    input#postImageInput(type='file', style='display:none', accept="image/png, image/jpeg")
+                    button#submitImageButton
+                        <img src="https://img.icons8.com/ios-glyphs/30/000000/picture.png"/>
+                        
+                    button#submitGifButton 
+                        <img src="https://img.icons8.com/ios-glyphs/30/000000/attach-gif.png"/>
+                .buttonContainer 
+                    button#submitPostButton(disabled="") Post 
+            .imagePostPreviewContainer
 
 mixin createReplyModal(userLoggedIn)
     #replyModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='replyModalLabel', aria-hidden='true')

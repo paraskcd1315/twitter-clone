@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 
 router.get('/', (req, res, next) => {
 	let payload = {
+		classActive: 'profile',
 		pageTitle: req.session.user.username,
 		userLoggedIn: req.session.user,
 		userLoggedInJs: JSON.stringify(req.session.user),
@@ -53,6 +54,7 @@ const getPayload = async (username, userLoggedIn) => {
 
 		if (user === null) {
 			return {
+				classActive: 'profile',
 				pageTitle: 'User not found',
 				userLoggedIn: userLoggedIn,
 				userLoggedInJs: JSON.stringify(userLoggedIn)
@@ -61,6 +63,7 @@ const getPayload = async (username, userLoggedIn) => {
 	}
 
 	return {
+		classActive: 'profile',
 		pageTitle: user.username,
 		userLoggedIn: userLoggedIn,
 		userLoggedInJs: JSON.stringify(userLoggedIn),

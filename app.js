@@ -6,6 +6,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const mongoose = require('./database');
 const session = require('express-session');
+const cors = require('cors');
 
 const server = app.listen(port, () =>
 	console.log(`Server listening on Port - ${port}`)
@@ -65,8 +66,15 @@ app.use('/api/chats', chatsApiRoute);
 app.use('/api/messages', messagesApiRoute);
 app.use('/api/notifications', notificationsApiRoute);
 
+app.use(
+	cors({
+		origin: '*'
+	})
+);
+
 app.get('/', middleware.requireLogin, (req, res, next) => {
 	let payload = {
+		classActive: 'home',
 		pageTitle: 'Home',
 		userLoggedIn: req.session.user,
 		userLoggedInJs: JSON.stringify(req.session.user)

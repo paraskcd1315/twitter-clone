@@ -47,7 +47,19 @@ router.get('/', async (req, res, next) => {
 		delete searchObj.followingOnly;
 	}
 
-	const results = await getPosts(searchObj);
+	var recordsPerPage =
+		searchObj.recordsPerPage !== undefined && req.query.recordsPerPage !== ''
+			? parseInt(req.query.recordsPerPage)
+			: 20;
+	var recordsOffset =
+		searchObj.recordsOffset !== undefined && req.query.recordsOffset !== ''
+			? parseInt(req.query.recordsOffset)
+			: 0;
+
+	delete searchObj.recordsPerPage;
+	delete searchObj.recordsOffset;
+
+	const results = await getPosts(searchObj, recordsPerPage, recordsOffset);
 	return res.status(200).send(results);
 });
 
@@ -344,7 +356,7 @@ router.put('/:id', async (req, res, next) => {
 
 //Common function for getting posts
 
-const getPosts = async (filter) => {
+const getPosts = async (filter, recordsPerPage, recordsOffset) => {
 	let results = await Post.find(filter)
 		.populate('postedBy', '-password')
 		.populate('retweetData')
@@ -352,6 +364,8 @@ const getPosts = async (filter) => {
 		.populate('hashtags')
 		.populate('mentions')
 		.sort({ createdAt: -1 })
+		.skip(recordsOffset)
+		.limit(recordsPerPage)
 		.catch((err) => {
 			console.log(err);
 		});

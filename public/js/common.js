@@ -1,10 +1,36 @@
 var cropper;
 var timer;
 var selectedUsers = [];
+var deviceWidth = document.documentElement.clientWidth;
+var is_opera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+var is_Edge = navigator.userAgent.indexOf('Edge') > -1;
+var is_chrome = !!window.chrome && !is_opera && !is_Edge;
+var is_explorer =
+	typeof document !== 'undefined' && !!document.documentMode && !is_Edge;
+var is_firefox = typeof window.InstallTrigger !== 'undefined';
+var is_safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 $(document).ready(() => {
 	refreshMessagesBadge();
 	refreshNotificationsBadge();
+	localstore.init({
+		storageName: 'twitterClone',
+		extraStorage: {}
+	});
+});
+
+document.addEventListener('swiped-right', (e) => {
+	if (deviceWidth <= 600) {
+		$('.checkbox').prop('checked', true);
+		openSidebar();
+	}
+});
+
+document.addEventListener('swiped-left', (e) => {
+	if (deviceWidth <= 600) {
+		$('.checkbox').prop('checked', false);
+		closeSidebar();
+	}
 });
 
 $('#postTextarea, #replyTextArea').keyup((e) => {
@@ -114,6 +140,14 @@ $('#unpinPostButton').click((e) => {
 			location.reload();
 		}
 	});
+});
+
+$('.checkbox').change((e) => {
+	if ($('.checkbox').is(':checked') && deviceWidth <= 600) {
+		openSidebar();
+	} else {
+		closeSidebar();
+	}
 });
 
 $('#filePhoto').change(function () {
@@ -533,10 +567,7 @@ const createPostHtml = (postData, largeFont = false, isProfile = false) => {
                 <div class="header">
                     <a class="displayName" href="/profile/${
 											postData.postedBy.username
-										}">${
-		postData.postedBy.firstName + ' ' + postData.postedBy.lastName
-	}</a>
-                    <span class="username">@${postData.postedBy.username}</span>
+										}">${postData.postedBy.username}</a>
                     <span class="date">${timeDifference(
 											new Date(),
 											new Date(postData.createdAt)
@@ -606,7 +637,7 @@ const timeDifference = (current, previous) => {
 };
 
 const outputPosts = (results, container) => {
-	container.html('');
+	//container.html('');
 
 	if (!Array.isArray(results)) {
 		results = [results];
@@ -1009,4 +1040,19 @@ const getUserChatImageElement = (user) => {
 	}
 
 	return `<img src='${user.profilePic}' alt='User's profile pic'>`;
+};
+
+const openSidebar = () => {
+	$('.mainSectionContainer').attr(
+		'style',
+		`${
+			is_safari ? 'width: calc(100% - 75px);' : ''
+		}transform: translate(75px, 0);transition: all 250ms ease`
+	);
+};
+const closeSidebar = () => {
+	$('.mainSectionContainer').attr(
+		'style',
+		`translate(0, 0);transition: all 250ms ease`
+	);
 };

@@ -9,6 +9,7 @@ const Chat = require('../schemas/Chat');
 
 router.get('/', (req, res, next) => {
 	res.status(200).render('inboxPage', {
+		classActive: 'messages',
 		pageTitle: 'Inbox',
 		userLoggedIn: req.session.user,
 		userLoggedInJs: JSON.stringify(req.session.user)
@@ -17,6 +18,7 @@ router.get('/', (req, res, next) => {
 
 router.get('/new', (req, res, next) => {
 	res.status(200).render('newMessagePage', {
+		classActive: 'messages',
 		pageTitle: 'New message',
 		userLoggedIn: req.session.user,
 		userLoggedInJs: JSON.stringify(req.session.user)
@@ -29,6 +31,7 @@ router.get('/:chatId', async (req, res, next) => {
 	var isValidId = mongoose.isValidObjectId(chatId);
 
 	var payload = {
+		classActive: 'messages',
 		pageTitle: 'Chat',
 		userLoggedIn: req.session.user,
 		userLoggedInJs: JSON.stringify(req.session.user)

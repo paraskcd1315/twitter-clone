@@ -18,6 +18,7 @@ router.get('/:selectedTab', (req, res, next) => {
 
 const createPayload = (userLoggedIn) => {
 	return {
+		classActive: 'search',
 		pageTitle: 'Search',
 		userLoggedIn: userLoggedIn,
 		userLoggedInJs: JSON.stringify(userLoggedIn)
